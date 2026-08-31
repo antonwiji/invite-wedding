@@ -1,7 +1,12 @@
+/* ==========================================================================
+   Wedding Invitation WA Message Generator — Stylesheet
+   Theme: Elegant Warm Wedding (Champagne, Sage & Gold)
+   ========================================================================== */
+
 :root {
+  /* Colors */
   --primary-color: #2e7d32;
   --primary-hover: #256629;
-  --primary-light: #e8f5e9;
   --accent-gold: #b38749;
   --accent-gold-light: #fdf8ee;
   --bg-gradient-start: #f8f6f0;
@@ -16,16 +21,21 @@
   --wa-bubble-bg: #e7ffdb;
   --wa-bubble-border: #d4f3c0;
   --error-color: #e53e3e;
+
+  /* Typography */
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Sizing & Borders */
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 8px 20px rgba(78, 60, 40, 0.08);
   --shadow-lg: 0 16px 36px rgba(78, 60, 40, 0.12);
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
+/* Reset & Base */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -42,7 +52,7 @@ body {
   line-height: 1.6;
 }
 
-/* Subtle background decorations */
+/* Background Atmospheric Blur Orbs */
 .background-decorations {
   position: fixed;
   top: 0;
@@ -86,7 +96,7 @@ body {
   padding: 32px 20px 48px;
 }
 
-/* Header */
+/* Header Section */
 .app-header {
   text-align: center;
   margin-bottom: 36px;
@@ -94,7 +104,6 @@ body {
 
 .badge {
   display: inline-block;
-  font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -124,7 +133,7 @@ body {
   margin: 0 auto;
 }
 
-/* Grid Layout */
+/* Two-column Grid */
 .main-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -139,14 +148,13 @@ body {
   }
 }
 
-/* Card Styles */
+/* Card Common Styles */
 .card {
   background: var(--card-bg);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-md);
   padding: 28px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card-header {
@@ -181,7 +189,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Form Styles */
+/* Form Groups & Inputs */
 .form-group {
   margin-bottom: 20px;
 }
@@ -267,10 +275,10 @@ input.input-error {
   line-height: 1.4;
 }
 
-/* Button Group */
+/* Button Styling */
 .button-group {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   margin-top: 28px;
 }
 
@@ -279,7 +287,7 @@ input.input-error {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 20px;
+  padding: 14px 18px;
   font-family: var(--font-sans);
   font-size: 0.95rem;
   font-weight: 600;
@@ -307,9 +315,27 @@ input.input-error {
   transform: translateY(0);
 }
 
+.btn-share {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+  padding: 14px 16px;
+}
+
+.btn-share:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-share:active {
+  transform: translateY(0);
+}
+
 .btn-secondary {
   background: #f1ede6;
   color: #554436;
+  padding: 14px 16px;
 }
 
 .btn-secondary:hover {
@@ -388,7 +414,7 @@ input.input-error {
   border-color: var(--accent-gold);
 }
 
-/* WhatsApp Chat Preview */
+/* WhatsApp Chat Bubble Simulation */
 .wa-chat-container {
   background-color: #efeae2;
   background-image: radial-gradient(#d3c9be 1px, transparent 1px);
@@ -461,7 +487,7 @@ input.input-error {
   color: var(--text-light);
 }
 
-/* Toast */
+/* Toast Pop-up */
 .toast {
   position: fixed;
   bottom: 24px;

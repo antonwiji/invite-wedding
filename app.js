@@ -1,10 +1,12 @@
 /**
- * Wedding Invitation WA Message Generator
+ * ==========================================================================
+ * Wedding Invitation WA Message Generator — JavaScript Logic
  * Indah & Anton
+ * ==========================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // DOM Elements
+  // --- DOM Element References ---
   const inviteForm = document.getElementById('inviteForm');
   const guestNameInput = document.getElementById('guestName');
   const partnerNameInput = document.getElementById('partnerName');
@@ -15,12 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewTime = document.getElementById('previewTime');
   const btnCopyMessage = document.getElementById('btnCopyMessage');
   const btnCopyUrl = document.getElementById('btnCopyUrl');
+  const btnShareNative = document.getElementById('btnShareNative');
   const btnReset = document.getElementById('btnReset');
   const toast = document.getElementById('toast');
 
+  // Base URL for online wedding invitation
   const BASE_URL = 'https://undanganonlineaja.id/indah-anton';
 
-  // Set real-time clock on WA preview
+  // Device detection (iOS / Android / Desktop)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || isIOS;
+
+  /**
+   * Updates real-time clock in the WhatsApp preview bubble
+   */
   function updateTime() {
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
@@ -52,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /**
    * Generates the personalized invitation URL
+   * @param {boolean} isPlaceholderIfEmpty - Whether to return placeholder URL if empty
    */
   function generateInviteUrl(isPlaceholderIfEmpty = false) {
     const recipientName = getRecipientName(isPlaceholderIfEmpty);
@@ -62,7 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
-   * Generates the full WhatsApp invitation message
+   * Generates the full WhatsApp invitation message template
+   * @param {boolean} isPlaceholderIfEmpty - Whether to return placeholder message if empty
    */
   function generateFullMessage(isPlaceholderIfEmpty = false) {
     const inviteUrl = generateInviteUrl(isPlaceholderIfEmpty);
@@ -92,6 +105,10 @@ Indah & Anton`;
 
   /**
    * Normalizes Indonesian phone numbers into international WhatsApp format (62...)
+   * Examples:
+   *  08123456789 -> 628123456789
+   *  8123456789  -> 628123456789
+   *  +6281234567 -> 6281234567
    */
   function formatPhoneNumber(phone) {
     if (!phone) return '';
@@ -105,19 +122,18 @@ Indah & Anton`;
   }
 
   /**
-   * Updates the live preview elements
+   * Updates live preview elements synchronously
    */
   function updatePreview() {
     const isGuestEmpty = !guestNameInput.value.trim();
     const inviteUrl = generateInviteUrl(isGuestEmpty);
     const message = generateFullMessage(isGuestEmpty);
 
-    // Update URL preview
+    // Update URL preview link
     previewUrlLink.textContent = inviteUrl;
     previewUrlLink.href = isGuestEmpty ? '#' : inviteUrl;
 
-    // Update Message text in chat bubble
-    // Make URLs in message clickable for preview
+    // Update message text in chat bubble (make link clickable in preview)
     const escapedMessage = escapeHtml(message);
     const linkedMessage = escapedMessage.replace(
       /(https:\/\/[^\s]+)/g,
@@ -127,7 +143,7 @@ Indah & Anton`;
   }
 
   /**
-   * Helper to escape HTML tags in preview
+   * Helper to escape HTML characters
    */
   function escapeHtml(text) {
     const map = {
@@ -141,7 +157,7 @@ Indah & Anton`;
   }
 
   /**
-   * Displays toast notification
+   * Displays toast notification banner
    */
   let toastTimer = null;
   function showToast(message, type = 'success') {
@@ -155,7 +171,7 @@ Indah & Anton`;
   }
 
   /**
-   * Copies text to clipboard with modern fallback
+   * Copies text to clipboard with modern Clipboard API and legacy fallback
    */
   async function copyToClipboard(text, successMessage) {
     try {
@@ -181,7 +197,7 @@ Indah & Anton`;
   }
 
   /**
-   * Validates form input
+   * Validates guest name input
    */
   function validateForm() {
     const guest = guestNameInput.value.trim();
@@ -196,21 +212,10 @@ Indah & Anton`;
     return true;
   }
 
-  // Event Listeners for real-time preview
-  guestNameInput.addEventListener('input', () => {
-    if (guestNameInput.value.trim()) {
-      guestNameInput.classList.remove('input-error');
-      guestNameError.classList.remove('visible');
-    }
-    updatePreview();
-  });
-
-  partnerNameInput.addEventListener('input', updatePreview);
-
-  // Form Submit -> Send WhatsApp
-  inviteForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
+  /**
+   * Opens WhatsApp with proper handling for iOS, Android, and Desktop
+   */
+  function openWhatsApp() {
     if (!validateForm()) {
       showToast('Mohon masukkan nama tamu terlebih dahulu', 'error');
       return;
@@ -220,31 +225,98 @@ Indah & Anton`;
     const phone = formatPhoneNumber(phoneNumberInput.value.trim());
     const encodedMessage = encodeURIComponent(message);
 
-    let waUrl = '';
     if (phone) {
-      waUrl = `https://wa.me/${phone}?text=${encodedMessage}`;
+      // 1. Direct message to specific phone number
+      if (isMobile) {
+        // Deep link into WhatsApp mobile chat room
+        window.location.href = `whatsapp://send?phone=${phone}&text=${encodedMessage}`;
+      } else {
+        // WhatsApp Web on Desktop
+        window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`, '_blank');
+      }
     } else {
-      waUrl = `https://wa.me/?text=${encodedMessage}`;
+      // 2. No phone number provided -> Trigger contact selection in WhatsApp
+      if (isMobile) {
+        // whatsapp:// scheme triggers native contact selector on iOS & Android
+        window.location.href = `whatsapp://send?text=${encodedMessage}`;
+      } else {
+        // WhatsApp Web on Desktop
+        window.open(`https://web.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+      }
+    }
+  }
+
+  /**
+   * Native Share API (Invokes iPhone / Android system share sheet)
+   */
+  async function shareNative() {
+    if (!validateForm()) {
+      showToast('Mohon masukkan nama tamu terlebih dahulu', 'error');
+      return;
     }
 
-    window.open(waUrl, '_blank');
+    const message = generateFullMessage(false);
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Undangan Pernikahan Indah & Anton',
+          text: message
+        });
+        showToast('Berhasil membuka menu Share!', 'success');
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Share error:', err);
+          // Fallback to WhatsApp link if share sheet encounters error
+          openWhatsApp();
+        }
+      }
+    } else {
+      // If Web Share API is not supported, open WhatsApp directly
+      openWhatsApp();
+    }
+  }
+
+  // --- Event Listeners ---
+
+  // Real-time input listener for Guest Name
+  guestNameInput.addEventListener('input', () => {
+    if (guestNameInput.value.trim()) {
+      guestNameInput.classList.remove('input-error');
+      guestNameError.classList.remove('visible');
+    }
+    updatePreview();
   });
 
-  // Copy Full Message
+  // Real-time input listener for Partner Name
+  partnerNameInput.addEventListener('input', updatePreview);
+
+  // Form Submit -> Send via WhatsApp
+  inviteForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    openWhatsApp();
+  });
+
+  // Native Share Button (iOS / Android)
+  if (btnShareNative) {
+    btnShareNative.addEventListener('click', shareNative);
+  }
+
+  // Copy Full Message Button
   btnCopyMessage.addEventListener('click', () => {
     const isGuestEmpty = !guestNameInput.value.trim();
     const message = generateFullMessage(isGuestEmpty);
     copyToClipboard(message, 'Pesan undangan berhasil disalin! 📋');
   });
 
-  // Copy URL Only
+  // Copy URL Only Button
   btnCopyUrl.addEventListener('click', () => {
     const isGuestEmpty = !guestNameInput.value.trim();
     const url = generateInviteUrl(isGuestEmpty);
     copyToClipboard(url, 'Link undangan berhasil disalin! 🔗');
   });
 
-  // Reset Form
+  // Reset Form Button
   btnReset.addEventListener('click', () => {
     inviteForm.reset();
     guestNameInput.classList.remove('input-error');
@@ -254,6 +326,6 @@ Indah & Anton`;
     showToast('Formulir telah direset', 'success');
   });
 
-  // Initial preview render
+  // Render initial preview state on load
   updatePreview();
 });
